@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LHB Coach & Power Car Technical Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Noto Sans Devanagari & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        railnavy: '#002B5B',
+                        railblue: '#005B96',
+                        railyellow: '#F4D160',
+                        railgray: '#E8ECEF',
+                        railgold: '#D4AF37',
+                        railred: '#C0392B',
+                        railgreen: '#27AE60'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans Devanagari', 'Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        .modal-active {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-railblue selection:text-white">
+
+    <!-- TOP HEADER -->
+    <header class="bg-railnavy text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-railyellow text-railnavy p-2 rounded-lg font-bold text-xl shadow flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-train"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-wide leading-tight">LHB Coach & Power Car Guide</h1>
+                    <p class="text-xs text-slate-300">भारतीय रेलवे तकनीकी एवं कंट्रोल वायरिंग निर्देशिका</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Owner Branding Info Badge -->
+                <div id="ownerBadge" class="hidden sm:flex flex-col text-right pr-2 border-r border-slate-600">
+                    <span class="text-[10px] text-railyellow font-bold uppercase tracking-wider">ऐप मालिक / एडमिन</span>
+                    <span id="ownerNameDisplay" class="text-xs font-semibold text-white">इंजीनियर / तकनीशियन</span>
+                </div>
+
+                <!-- Admin Mode Toggle Switch -->
+                <button id="adminToggleBtn" onclick="promptAdminLogin()" class="px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 bg-slate-800 text-slate-200 border border-slate-600 hover:bg-slate-700">
+                    <i class="fa-solid fa-user-shield text-railyellow"></i>
+                    <span id="adminBtnText">एडमिन मोड लॉगइन</span>
+                </button>
+
+                <!-- Bookmarks Filter Toggle -->
+                <button onclick="toggleBookmarksFilter()" id="bookmarkFilterBtn" class="px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition flex items-center gap-1.5 bg-slate-800 text-slate-200 border border-slate-600 hover:bg-slate-700">
+                    <i class="fa-solid fa-bookmark text-railyellow"></i>
+                    <span>बुकमार्क</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ADMIN STATUS BANNER -->
+        <div id="adminBanner" class="hidden bg-amber-500 text-slate-900 px-4 py-2 text-xs font-bold flex flex-wrap justify-between items-center gap-2 max-w-7xl mx-auto border-t border-amber-400">
+            <span><i class="fa-solid fa-crown mr-1"></i> पूर्ण एडमिन अधिकार सक्रिय हैं: आप नया डेटा जोड़ सकते हैं, PDF जनरेट कर सकते हैं और सेटिंग्स बदल सकते हैं।</span>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="openAddModal()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-black"><i class="fa-solid fa-plus mr-1"></i> नया टॉपिक</button>
+                <button onclick="openQuickFaultModal()" class="bg-red-700 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-red-800"><i class="fa-solid fa-bolt mr-1"></i> त्वरित फॉल्ट एंट्री</button>
+                <button onclick="openSettingsModal()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-black"><i class="fa-solid fa-gear mr-1"></i> ऐप सेटिंग्स & नाम</button>
+                <button onclick="exportData()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-black"><i class="fa-solid fa-download mr-1"></i> बैकअप (Export)</button>
+                <button onclick="document.getElementById('importFileInput').click()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-black"><i class="fa-solid fa-upload mr-1"></i> अपलोड (Import)</button>
+                <input type="file" id="importFileInput" onchange="importData(event)" class="hidden" accept=".json">
+            </div>
+        </div>
+    </header>
+
+    <!-- SEARCH AND CATEGORY BAR -->
+    <section class="bg-railblue text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <!-- Search Field -->
+            <div class="relative max-w-2xl mx-auto mb-4">
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="खोजें: उदाहरण - Power Car, Control Circuit, 750V, Fault..." class="w-full pl-10 pr-10 py-2.5 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-railyellow shadow text-sm md:text-base">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Categories Tabs -->
+            <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar text-xs md:text-sm font-medium" id="categoryTabs">
+                <button onclick="filterCategory('All')" class="category-btn active bg-railyellow text-railnavy font-bold px-4 py-2 rounded-lg whitespace-nowrap shadow transition">
+                    <i class="fa-solid fa-list-ul mr-1"></i> सभी विषय
+                </button>
+                <button onclick="filterCategory('LHB Coach')" class="category-btn bg-slate-800 text-slate-200 hover:bg-slate-700 px-4 py-2 rounded-lg whitespace-nowrap transition">
+                    <i class="fa-solid fa-train-subway mr-1"></i> LHB कोच
+                </button>
+                <button onclick="filterCategory('Power Car')" class="category-btn bg-slate-800 text-slate-200 hover:bg-slate-700 px-4 py-2 rounded-lg whitespace-nowrap transition">
+                    <i class="fa-solid fa-bolt mr-1"></i> पावर कार (EOG/SG)
+                </button>
+                <button onclick="filterCategory('Control Wiring')" class="category-btn bg-slate-800 text-slate-200 hover:bg-slate-700 px-4 py-2 rounded-lg whitespace-nowrap transition">
+                    <i class="fa-solid fa-diagram-project mr-1"></i> कंट्रोल वायरिंग & डायग्राम
+                </button>
+                <button onclick="filterCategory('Troubleshooting')" class="category-btn bg-slate-800 text-slate-200 hover:bg-slate-700 px-4 py-2 rounded-lg whitespace-nowrap transition">
+                    <i class="fa-solid fa-wrench mr-1"></i> ट्रबलशूटिंग (Faults)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+        
+        <!-- Quick Stats & Info Ribbon -->
+        <div class="flex justify-between items-center mb-4 text-xs md:text-sm text-slate-600">
+            <div>
+                कुल उपलब्ध टॉपिक्स: <span id="topicCount" class="font-bold text-railnavy">0</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetDataToDefault()" title="डिफ़ॉल्ट डेटा पुनर्स्थापित करें" class="text-xs text-red-600 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i> डिफ़ॉल्ट रीसेट करें
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards Container Grid -->
+        <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamic Cards injected by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl shadow border border-slate-200 p-6 my-6">
+            <i class="fa-solid fa-folder-open text-5xl text-slate-300 mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-700">कोई जानकारी नहीं मिली</h3>
+            <p class="text-slate-500 text-sm mt-1">कृपया अपना सर्च कीवर्ड बदलें या दूसरा कैटेगिरी चुनें।</p>
+        </div>
+    </main>
+
+    <!-- ADD / EDIT TOPIC MODAL -->
+    <div id="topicModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-railnavy text-white px-5 py-4 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2"></i> नया तकनीकी टॉपिक जोड़ें</h3>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="topicForm" onsubmit="handleFormSubmit(event)" class="p-5 overflow-y-auto space-y-4">
+                <input type="hidden" id="editCardId">
+
+                <!-- Title Input -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">टॉपिक का शीर्षक (Title) *</label>
+                    <input type="text" id="inputTitle" required placeholder="उदाहरण: 750V / 415V Transformer Circuit" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none">
+                </div>
+
+                <!-- Category Selector -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">कैटेगिरी चुनें *</label>
+                    <select id="inputCategory" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none">
+                        <option value="LHB Coach">LHB Coach</option>
+                        <option value="Power Car">Power Car (EOG/SG)</option>
+                        <option value="Control Wiring">Control Wiring & Schematics</option>
+                        <option value="Troubleshooting">Troubleshooting (Fault Finding)</option>
+                    </select>
+                </div>
+
+                <!-- Description / Overview -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">मुख्य विवरण (Description) *</label>
+                    <textarea id="inputDescription" rows="3" required placeholder="टॉपिक के बारे में विस्तृत विवरण दर्ज करें..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none"></textarea>
+                </div>
+
+                <!-- Technical Key Points / Bullet List -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">मुख्य तकनीकी बिंदु (Key Points - प्रति पंक्ति एक बिंदु)</label>
+                    <textarea id="inputPoints" rows="3" placeholder="बिंदु 1: 750V AC 3-Phase Supply&#10;बिंदु 2: 60 KVA Step-Down Transformer&#10;बिंदु 3: 415V Distribution" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none"></textarea>
+                </div>
+
+                <!-- Image URL or File Upload -->
+                <div class="border border-dashed border-slate-300 p-3 rounded-xl bg-slate-50 space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase">डायग्राम या फोटो जोड़ें (Image / Circuit Diagram)</label>
+                    
+                    <input type="url" id="imageUrlInput" placeholder="इमेज URL पेस्ट करें (https://...)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-railblue outline-none">
+                    
+                    <div class="text-center text-xs text-slate-400 font-semibold my-1">या</div>
+                    
+                    <input type="file" id="imageFileInput" accept="image/*" onchange="previewFileImage(event)" class="w-full text-xs text-slate-600">
+                    <input type="hidden" id="imageBase64">
+                    <div id="imagePreviewContainer" class="hidden mt-2">
+                        <p class="text-xs text-slate-500 mb-1">इमेज पूर्वावलोकन (Preview):</p>
+                        <img id="imagePreview" src="" class="h-24 rounded border object-contain bg-black">
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Steps (Optional) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">फॉल्ट हल करने के चरण (Troubleshooting Steps - प्रति पंक्ति एक)</label>
+                    <textarea id="inputFaultSteps" rows="3" placeholder="चरण 1: Main MCB स्विच ट्रिप की जांच करें&#10;चरण 2: Control Voltage 110V DC चेक करें&#10;चरण 3: Fault Reset बटन दबाएं" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none"></textarea>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex justify-end gap-3 pt-3 border-t">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm text-slate-600 hover:bg-slate-100 font-semibold">रद्द करें</button>
+                    <button type="submit" class="px-5 py-2 bg-railnavy text-white rounded-lg text-sm hover:bg-railblue font-semibold shadow">सुरक्षित करें (Save)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FULLSCREEN IMAGE / DIAGRAM VIEWER MODAL -->
+    <div id="imageViewerModal" class="fixed inset-0 bg-black/90 z-50 flex flex-col justify-between p-4 hidden">
+        <div class="flex justify-between items-center text-white px-2">
+            <h4 id="viewerTitle" class="text-sm md:text-base font-bold truncate">डायग्राम व्यूअर</h4>
+            <div class="flex items-center gap-3">
+                <button onclick="zoomImage(1.2)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm" title="ज़ूम इन"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button onclick="zoomImage(0.8)" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm" title="ज़ूम आउट"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button onclick="resetZoom()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm" title="रीसेट"><i class="fa-solid fa-rotate-right"></i></button>
+                <button onclick="closeImageViewer()" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+        </div>
+
+        <div class="flex-grow flex items-center justify-center overflow-hidden my-2 relative cursor-grab active:cursor-grabbing" id="imageContainer">
+            <img id="fullImageView" src="" alt="Circuit Diagram" class="max-h-full max-w-full object-contain transition-transform duration-200">
+        </div>
+
+        <div class="text-center text-xs text-slate-400">
+            माउस व्हील या ज़ूम बटन का उपयोग करके डायग्राम को विस्तार से देखें।
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-railnavy text-slate-300 py-6 border-t border-slate-700 mt-10">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="text-sm font-semibold text-white">LHB Coach & Power Car Technical Guide</p>
+            <p class="text-xs text-slate-400">भारतीय रेलवे कर्मचारियों एवं तकनीशियनों के लिए एक डिजिटल सहायता प्लेटफ़ॉर्म</p>
+            <div class="text-xs text-slate-500 pt-2">
+                &copy; <span id="year"></span> | Offline Ready (LocalStorage Integration)
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Default Pre-loaded Indian Railways Technical Data
+        const defaultData = [
+            {
+                id: "card_1",
+                title: "LHB Coach: मुख्य परिचय एवं विशेषताएं",
+                category: "LHB Coach",
+                description: "LHB (Linke Hofmann Busch) कोच जर्मन तकनीक पर आधारित हैं। ये कोच ICF कोचों की तुलना में अत्यधिक सुरक्षित, हल्के और उच्च गति के लिए डिज़ाइन किए गए हैं।",
+                points: [
+                    "स्टेनलेस स्टील बॉडी और एंटी-क्लाइम्बिंग सेंटर बफर कपलर (CBC)।",
+                    "डिस्क ब्रेक सिस्टम और इलेक्ट्रॉनिक फ़ियाट (FIAT) बोगी।",
+                    "अधिकतम डिज़ाइन गति: 160 kmph से 200 kmph तक।",
+                    "एयर सस्पेंशन (Secondary Air Spring) के साथ FIBA सिस्टम।"
+                ],
+                imageUrl: "https://images.unsplash.com/photo-1532105956626-9569c03602f6?auto=format&fit=crop&w=800&q=80",
+                faultSteps: [],
+                bookmarked: false
+            },
+            {
+                id: "card_2",
+                title: "Power Car (EOG / SG): D.A. Set एवं जनरेटर कार्यप्रणाली",
+                category: "Power Car",
+                description: "End On Generation (EOG) पावर कार पूरी ट्रेन को 750V AC 3-Phase पावर सप्लाई प्रदान करती है। इसमें दो डीजल अल्टरनेटर (DA Set) लगे होते हैं।",
+                points: [
+                    "प्रत्येक DA Set क्षमता: लगभग 500 kVA / 336 kW 750V AC supply।",
+                    "कंट्रोल पैनल में ACB (Air Circuit Breaker) और Feeder switches होते हैं।",
+                    "फ्यूल टैंक क्षमता: 1540 लीटर डीजल ईंधन।",
+                    "इंजन कूलिंग के लिए रेडिएटर और रूफ-माउंटेड फैन।"
+                ],
+                imageUrl: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80",
+                faultSteps: [
+                    "1. यदि DA Set स्टार्ट न हो: बैटरी वोल्टेज (24V DC) जांचें।",
+                    "2. फ्यूल सप्लाय वाल्व और डीजल फ़िल्टर की रुकावट चेक करें।",
+                    "3. Engine Safety Circuit (LOP / HWT Relay) ट्रिपिंग चेक करें।"
+                ],
+                bookmarked: true
+            },
+            {
+                id: "card_3",
+                title: "Control Wiring: LHB कोच पावर डिस्ट्रीब्यूशन सर्किट",
+                category: "Control Wiring",
+                description: "LHB कोच में पावर सप्लाई 750V AC पावर कार फीडर से होकर कोच के 60 kVA ट्रांसफार्मर में आती है, जो इसे 415V AC में बदलती है।",
+                points: [
+                    "750V AC 3-Phase Input -> 60 kVA Step-down Transformer.",
+                    "415V AC Output -> RMPU (AC Unit) एवं 110V AC Step-down Transformer.",
+                    "110V AC -> लाइट्स, फैंस एवं मोबाइल चार्जिंग सॉकेट्स।",
+                    "110V DC बैटरी बैंक और बैटरी चार्जर कंट्रोल सर्किट।"
+                ],
+                imageUrl: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80",
+                faultSteps: [
+                    "1. 60 kVA Transformer ट्रिप होने पर: Primary/Secondary Fuse चेक करें।",
+                    "2. 750V Feeder Connector (Net 1 / Net 2) की Continuity चेक करें।",
+                    "3. SBC (Switch Board Cabinet) में Earth Leakage Relay (ELR) स्थिति जांचें।"
+                ],
+                bookmarked: false
+            },
+            {
+                id: "card_4",
+                title: "Troubleshooting: AC Plant / RMPU कूलिंग न होना",
+                category: "Troubleshooting",
+                description: "LHB कोच में LHB RMPU (Roof Mounted Package Unit) की कूलिंग फेलियर होने पर अपनाए जाने वाले त्वरित कदम:",
+                points: [
+                    "RMPU कंट्रोल पैनल SBC (Switch Board Cabinet) में स्थित है।",
+                    "कंप्रेसर Overload Relay या Pressure Switch (HP/LP) ट्रिपिंग चेक करें।",
+                    "माइक्रोप्रोसेसर कंट्रोलर पर एरर कोड चेक करें।"
+                ],
+                imageUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+                faultSteps: [
+                    "चरण 1: SBC में 415V MCB/Contactor स्थिति की जांच करें।",
+                    "चरण 2: Blower Fan का सही रोटेशन (हवा का बहाव) जांचें।",
+                    "चरण 3: यदि HP ट्रिप कोड आ रहा है तो Condenser Fan और कंडेनसर कॉइल की सफाई चेक करें।",
+                    "चरण 4: Microprocessor को 2 मिनट ऑफ करके पुनः रिसेट करें।"
+                ],
+                bookmarked: false
+            }
+        ];
+
+        // State Variables
+        let topicsData = [];
+        let isAdminMode = false;
+        let currentCategory = 'All';
+        let showBookmarksOnly = false;
+        let currentZoomLevel = 1;
+
+        // On Page Load
+        window.onload = function() {
+            document.getElementById('year').innerText = new Date().getFullYear();
+            loadInitialData();
+            renderCards();
+        };
+
+        // Load data from LocalStorage or Fallback to Default
+        function loadInitialData() {
+            const savedData = localStorage.getItem('lhb_app_topics');
+            if (savedData) {
+                try {
+                    topicsData = JSON.parse(savedData);
+                } catch(e) {
+                    topicsData = defaultData;
+                }
+            } else {
+                topicsData = defaultData;
+                saveToLocalStorage();
+            }
+        }
+
+        // Save State to LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('lhb_app_topics', JSON.stringify(topicsData));
+        }
+
+        // Toggle Admin Mode
+        function toggleAdminMode() {
+            isAdminMode = !isAdminMode;
+            const btnText = document.getElementById('adminBtnText');
+            const adminBanner = document.getElementById('adminBanner');
+            const adminToggleBtn = document.getElementById('adminToggleBtn');
+
+            if (isAdminMode) {
+                btnText.innerText = "एडमिन मोड बंद करें";
+                adminBanner.classList.remove('hidden');
+                adminToggleBtn.classList.replace('bg-slate-800', 'bg-amber-600');
+            } else {
+                btnText.innerText = "एडमिन मोड चालू करें";
+                adminBanner.classList.add('hidden');
+                adminToggleBtn.classList.replace('bg-amber-600', 'bg-slate-800');
+            }
+            renderCards();
+        }
+
+        // Render Cards Matrix
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            grid.innerHTML = '';
+
+            // Filter logic
+            const filtered = topicsData.filter(item => {
+                const matchesCategory = (currentCategory === 'All') || (item.category === currentCategory);
+                const matchesBookmark = !showBookmarksOnly || item.bookmarked;
+                
+                const matchesSearch = !searchVal || 
+                    item.title.toLowerCase().includes(searchVal) ||
+                    item.description.toLowerCase().includes(searchVal) ||
+                    item.category.toLowerCase().includes(searchVal) ||
+                    (item.points && item.points.some(p => p.toLowerCase().includes(searchVal))) ||
+                    (item.faultSteps && item.faultSteps.some(s => s.toLowerCase().includes(searchVal)));
+
+                return matchesCategory && matchesBookmark && matchesSearch;
+            });
+
+            document.getElementById('topicCount').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-lg transition duration-200";
+
+                // Points HTML
+                let pointsHtml = '';
+                if (item.points && item.points.length > 0) {
+                    pointsHtml = `
+                        <div class="mt-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                            <p class="text-xs font-bold text-slate-700 uppercase mb-1.5"><i class="fa-solid fa-list-check text-railblue mr-1"></i> मुख्य बिंदु:</p>
+                            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                                ${item.points.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // Fault Steps HTML
+                let faultStepsHtml = '';
+                if (item.faultSteps && item.faultSteps.length > 0) {
+                    faultStepsHtml = `
+                        <div class="mt-3 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                            <p class="text-xs font-bold text-amber-900 uppercase mb-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> ट्रबलशूटिंग गाइड:</p>
+                            <div class="text-xs text-amber-800 space-y-1 font-mono">
+                                ${item.faultSteps.map(s => `<div>${escapeHtml(s)}</div>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Image HTML
+                let imageHtml = '';
+                if (item.imageUrl) {
+                    imageHtml = `
+                        <div class="relative group cursor-pointer overflow-hidden h-44 bg-slate-900" onclick="openImageViewer('${escapeHtml(item.imageUrl)}', '${escapeHtml(item.title)}')">
+                            <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300 opacity-90 group-hover:opacity-100" onerror="this.src='https://placehold.co/600x300/002B5B/FFFFFF?text=Railway+Diagram'">
+                            <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition flex items-center justify-center">
+                                <span class="bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                                    <i class="fa-solid fa-magnifying-glass-plus"></i> डायग्राम ज़ूम करें
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Admin Controls HTML
+                let adminControlsHtml = '';
+                if (isAdminMode) {
+                    adminControlsHtml = `
+                        <div class="bg-slate-100 px-4 py-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                            <span class="text-slate-500 font-semibold">ID: ${item.id}</span>
+                            <div class="flex gap-2">
+                                <button onclick="openEditModal('${item.id}')" class="px-2.5 py-1 bg-railblue text-white rounded hover:bg-railnavy font-semibold"><i class="fa-solid fa-pen"></i> एडिट</button>
+                                <button onclick="deleteCard('${item.id}')" class="px-2.5 py-1 bg-red-600 text-white rounded hover:bg-red-700 font-semibold"><i class="fa-solid fa-trash"></i> हटाएं</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        ${imageHtml}
+                        <div class="p-4 md:p-5">
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <span class="bg-railnavy/10 text-railnavy text-[11px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
+                                    ${escapeHtml(item.category)}
+                                </span>
+                                <button onclick="toggleBookmark('${item.id}')" class="text-slate-400 hover:text-railyellow text-base p-1 transition" title="बुकमार्क करें">
+                                    <i class="${item.bookmarked ? 'fa-solid fa-bookmark text-amber-500' : 'fa-regular fa-bookmark'}"></i>
+                                </button>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-base md:text-lg leading-snug mb-2">${escapeHtml(item.title)}</h3>
+                            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">${escapeHtml(item.description)}</p>
+                            ${pointsHtml}
+                            ${faultStepsHtml}
+                        </div>
+                    </div>
+                    ${adminControlsHtml}
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Escape HTML Helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+
+        // Filter Category
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-railyellow', 'text-railnavy', 'font-bold');
+                btn.classList.add('bg-slate-800', 'text-slate-200');
+            });
+
+            event.currentTarget.classList.remove('bg-slate-800', 'text-slate-200');
+            event.currentTarget.classList.add('active', 'bg-railyellow', 'text-railnavy', 'font-bold');
+
+            renderCards();
+        }
+
+        // Search Handlers
+        function handleSearch() {
+            const val = document.getElementById('searchInput').value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (val.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderCards();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            renderCards();
+        }
+
+        // Toggle Bookmarks View
+        function toggleBookmarksFilter() {
+            showBookmarksOnly = !showBookmarksOnly;
+            const btn = document.getElementById('bookmarkFilterBtn');
+            if (showBookmarksOnly) {
+                btn.classList.replace('bg-slate-800', 'bg-amber-500');
+                btn.classList.replace('text-slate-200', 'text-slate-900');
+            } else {
+                btn.classList.replace('bg-amber-500', 'bg-slate-800');
+                btn.classList.replace('text-slate-900', 'text-slate-200');
+            }
+            renderCards();
+        }
+
+        // Toggle Single Bookmark
+        function toggleBookmark(id) {
+            const index = topicsData.findIndex(t => t.id === id);
+            if (index !== -1) {
+                topicsData[index].bookmarked = !topicsData[index].bookmarked;
+                saveToLocalStorage();
+                renderCards();
+            }
+        }
+
+        // Open Modal for Add
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "नया तकनीकी टॉपिक जोड़ें";
+            document.getElementById('editCardId').value = "";
+            document.getElementById('topicForm').reset();
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('imageBase64').value = "";
+            document.getElementById('topicModal').classList.remove('hidden');
+            document.body.classList.add('modal-active');
+        }
+
+        // Open Modal for Edit
+        function openEditModal(id) {
+            const card = topicsData.find(t => t.id === id);
+            if (!card) return;
+
+            document.getElementById('modalTitle').innerText = "टॉपिक संपादित (Edit) करें";
+            document.getElementById('editCardId').value = card.id;
+            document.getElementById('inputTitle').value = card.title || '';
+            document.getElementById('inputCategory').value = card.category || 'LHB Coach';
+            document.getElementById('inputDescription').value = card.description || '';
+            document.getElementById('inputPoints').value = card.points ? card.points.join('\n') : '';
+            document.getElementById('inputFaultSteps').value = card.faultSteps ? card.faultSteps.join('\n') : '';
+            document.getElementById('imageUrlInput').value = card.imageUrl || '';
+
+            if (card.imageUrl) {
+                document.getElementById('imagePreview').src = card.imageUrl;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+            } else {
+                document.getElementById('imagePreviewContainer').classList.add('hidden');
+            }
+
+            document.getElementById('topicModal').classList.remove('hidden');
+            document.body.classList.add('modal-active');
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('topicModal').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
+
+        // Preview Local Image Upload
+        function previewFileImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    document.getElementById('imageBase64').value = base64;
+                    document.getElementById('imagePreview').src = base64;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle Add/Edit Form Submit
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('editCardId').value;
+            const title = document.getElementById('inputTitle').value.trim();
+            const category = document.getElementById('inputCategory').value;
+            const description = document.getElementById('inputDescription').value.trim();
+            const pointsRaw = document.getElementById('inputPoints').value.trim();
+            const faultStepsRaw = document.getElementById('inputFaultSteps').value.trim();
+            
+            const urlImg = document.getElementById('imageUrlInput').value.trim();
+            const base64Img = document.getElementById('imageBase64').value;
+            const imageUrl = base64Img || urlImg;
+
+            const points = pointsRaw ? pointsRaw.split('\n').filter(p => p.trim().length > 0) : [];
+            const faultSteps = faultStepsRaw ? faultStepsRaw.split('\n').filter(s => s.trim().length > 0) : [];
+
+            if (id) {
+                // Edit existing
+                const index = topicsData.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    topicsData[index] = {
+                        ...topicsData[index],
+                        title,
+                        category,
+                        description,
+                        points,
+                        faultSteps,
+                        imageUrl
+                    };
+                }
+            } else {
+                // Add new
+                const newCard = {
+                    id: "card_" + Date.now(),
+                    title,
+                    category,
+                    description,
+                    points,
+                    faultSteps,
+                    imageUrl,
+                    bookmarked: false
+                };
+                topicsData.unshift(newCard);
+            }
+
+            saveToLocalStorage();
+            renderCards();
+            closeModal();
+        }
+
+        // Delete Card
+        function deleteCard(id) {
+            if (confirm("क्या आप वाकई इस कार्ड को हटाना चाहते हैं?")) {
+                topicsData = topicsData.filter(t => t.id !== id);
+                saveToLocalStorage();
+                renderCards();
+            }
+        }
+
+        // Reset Data to Default
+        function resetDataToDefault() {
+            if (confirm("क्या आप डेटा को डिफ़ॉल्ट स्थिति में रीसेट करना चाहते हैं? आपके द्वारा जोड़े गए नए कार्ड हट सकते हैं।")) {
+                topicsData = [...defaultData];
+                saveToLocalStorage();
+                renderCards();
+            }
+        }
+
+        // Export Data JSON
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(topicsData, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `LHB_Guide_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            dlAnchorElem.click();
+        }
+
+        // Import Data JSON
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        topicsData = imported;
+                        saveToLocalStorage();
+                        renderCards();
+                        alert("डेटा सफलतापूर्वक अपलोड हो गया है!");
+                    } else {
+                        alert("अमान्य फ़ाइल स्वरूप।");
+                    }
+                } catch(err) {
+                    alert("JSON फ़ाइल पढ़ने में त्रुटि।");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Image Fullscreen Viewer & Zoom Logic
+        function openImageViewer(src, title) {
+            document.getElementById('fullImageView').src = src;
+            document.getElementById('viewerTitle').innerText = title || 'Diagram Viewer';
+            document.getElementById('imageViewerModal').classList.remove('hidden');
+            resetZoom();
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewerModal').classList.add('hidden');
+        }
+
+        function zoomImage(factor) {
+            currentZoomLevel *= factor;
+            if (currentZoomLevel < 0.5) currentZoomLevel = 0.5;
+            if (currentZoomLevel > 4) currentZoomLevel = 4;
+            document.getElementById('fullImageView').style.transform = `scale(${currentZoomLevel})`;
+        }
+
+        function resetZoom() {
+            currentZoomLevel = 1;
+            document.getElementById('fullImageView').style.transform = `scale(1)`;
+        }
+    </script>
+</body>
+</html>
+    <!-- OWNER SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="bg-railnavy text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-sliders mr-2"></i> ऐप सेटिंग्स & मालिक का विवरण</h3>
+                <button onclick="closeSettingsModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveSettings(event)" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">मालिक / एडमिन का नाम (Owner Name)</label>
+                    <input type="text" id="settingOwnerName" placeholder="उदाहरण: इं. राम शर्मा (SSE/Electrical)" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">पद / स्टेशन (Designation / Station)</label>
+                    <input type="text" id="settingOwnerTitle" placeholder="उदाहरण: Senior Section Engineer, New Delhi" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">एडमिन सुरक्षा पासवर्ड (Passcode)</label>
+                    <input type="password" id="settingAdminPin" placeholder="डिफ़ॉल्ट PIN: 1234" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-railblue outline-none" required>
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t">
+                    <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold text-slate-600">रद्द करें</button>
+                    <button type="submit" class="px-5 py-2 bg-railnavy text-white rounded-lg text-xs font-semibold hover:bg-railblue">सेव करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRINT / PDF SHEET HIDDEN CONTAINER -->
+    <div id="printSection" class="hidden print:block p-8 bg-white text-slate-900 font-sans">
+        <!-- Printable layout styled specifically for Indian Railways technical logs -->
+    </div>
+
+    <!-- JAVASCRIPT LOGIC UPDATE -->
+    <script>
+        // App Configuration & Settings State
+        let appSettings = {
+            ownerName: "रेलवे एडमिन / मालिक",
+            ownerTitle: "सीनियर सेक्शन इंजीनियर (विद्युत)",
+            adminPin: "1234"
+        };
+
+        // Load Settings on Start
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('lhb_app_settings');
+            if (savedSettings) {
+                try {
+                    appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+                } catch(e){}
+            }
+            document.getElementById('ownerNameDisplay').innerText = appSettings.ownerName;
+            document.getElementById('ownerBadge').classList.remove('hidden');
+        }
+
+        // Save Settings
+        function saveSettings(event) {
+            event.preventDefault();
+            appSettings.ownerName = document.getElementById('settingOwnerName').value.trim() || appSettings.ownerName;
+            appSettings.ownerTitle = document.getElementById('settingOwnerTitle').value.trim() || appSettings.ownerTitle;
+            appSettings.adminPin = document.getElementById('settingAdminPin').value.trim() || appSettings.adminPin;
+
+            localStorage.setItem('lhb_app_settings', JSON.stringify(appSettings));
+            loadSettings();
+            closeSettingsModal();
+            alert("सेटिंग्स सफलतापूर्वक सुरक्षित कर ली गई हैं!");
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingOwnerName').value = appSettings.ownerName;
+            document.getElementById('settingOwnerTitle').value = appSettings.ownerTitle;
+            document.getElementById('settingAdminPin').value = appSettings.adminPin;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        // Admin Prompt Login
+        function promptAdminLogin() {
+            if (isAdminMode) {
+                toggleAdminMode();
+                return;
+            }
+            const pin = prompt("एडमिन मोड के लिए पासवर्ड (Passcode) दर्ज करें (डिफ़ॉल्ट: 1234):");
+            if (pin === appSettings.adminPin) {
+                toggleAdminMode();
+            } else if (pin !== null) {
+                alert("गलत पासवर्ड! कृपया पुनः प्रयास करें।");
+            }
+        }
+
+        // Quick Fault Log Modal Launcher
+        function openQuickFaultModal() {
+            openAddModal();
+            document.getElementById('modalTitle').innerText = "त्वरित फॉल्ट एंट्री लॉग करें (Site Fault Log)";
+            document.getElementById('inputCategory').value = "Troubleshooting";
+            document.getElementById('inputTitle').value = "फॉल्ट: ";
+        }
+
+        // Print / Generate PDF Sheet for Single Card
+        function printSingleCardPDF(id) {
+            const item = topicsData.find(t => t.id === id);
+            if (!item) return;
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${item.title} - Railway Tech Sheet</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 25px; color: #1e293b; line-height: 1.5; }
+                        .header { border-bottom: 3px solid #002B5B; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+                        .title { font-size: 20px; font-weight: bold; color: #002B5B; }
+                        .subtitle { font-size: 12px; color: #64748b; }
+                        .badge { background: #002B5B; color: #fff; padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; display: inline-block; margin-bottom: 12px; }
+                        .box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+                        .box-title { font-weight: bold; font-size: 13px; color: #002B5B; margin-bottom: 8px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+                        ul { margin: 0; padding-left: 20px; font-size: 13px; }
+                        li { margin-bottom: 4px; }
+                        img { max-width: 100%; max-height: 350px; display: block; margin: 15px auto; border-radius: 6px; border: 1px solid #ccc; }
+                        .footer { margin-top: 30px; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <div class="title">भारतीय रेलवे - तकनीकी एवं ट्रबलशूटिंग गाइड</div>
+                            <div class="subtitle">जारीकर्ता: ${appSettings.ownerName} (${appSettings.ownerTitle})</div>
+                        </div>
+                        <div style="text-align:right; font-size:11px; color:#64748b;">
+                            दिनांक: ${new Date().toLocaleDateString('hi-IN')}
+                        </div>
+                    </div>
+
+                    <span class="badge">${item.category}</span>
+                    <h2 style="margin-top:0; color:#0f172a;">${item.title}</h2>
+                    
+                    <div class="box">
+                        <div class="box-title">विवरण (Description):</div>
+                        <p style="font-size:13px; margin:0;">${item.description}</p>
+                    </div>
+
+                    ${item.points && item.points.length > 0 ? `
+                        <div class="box">
+                            <div class="box-title">मुख्य बिंदु (Technical Highlights):</div>
+                            <ul>${item.points.map(p => `<li>${p}</li>`).join('')}</ul>
+                        </div>
+                    ` : ''}
+
+                    ${item.faultSteps && item.faultSteps.length > 0 ? `
+                        <div class="box" style="background:#fffbebf; border-color:#fde68a;">
+                            <div class="box-title" style="color:#92400e;">ट्रबलशूटिंग एवं निवारण चरण (Action Steps):</div>
+                            <ul>${item.faultSteps.map(s => `<li>${s}</li>`).join('')}</ul>
+                        </div>
+                    ` : ''}
+
+                    ${item.imageUrl ? `<img src="${item.imageUrl}" alt="Diagram">` : ''}
+
+                    <div class="footer">
+                        यह दस्तावेज़ LHB Coach & Power Car Technical Guide डिजिटल ऐप द्वारा जनरेट किया गया है।
+                    </div>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(() => {
+                printWin.print();
+            }, 500);
+        }
+
+        // Updated Render Function Hook to Include PDF Export Button
+        const originalRenderCards = renderCards;
+        renderCards = function() {
+            originalRenderCards();
+            // Append PDF Print buttons to rendered cards
+            topicsData.forEach(item => {
+                const cardElements = document.querySelectorAll('#cardsGrid > div');
+                cardElements.forEach(cardEl => {
+                    if (cardEl.innerHTML.includes(item.title) && !cardEl.querySelector('.pdf-btn')) {
+                        const actionDiv = cardEl.querySelector('.p-4, .p-5');
+                        if (actionDiv) {
+                            const btn = document.createElement('button');
+                            btn.className = "pdf-btn mt-3 text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition flex items-center gap-1.5 w-full justify-center";
+                            btn.innerHTML = '<i class="fa-solid fa-file-pdf text-red-600"></i> PDF देखें / प्रिंट करें (Print Sheet)';
+                            btn.onclick = () => printSingleCardPDF(item.id);
+                            actionDiv.appendChild(btn);
+                        }
+                    }
+                });
+            });
+        };
+
+        // Initialize Settings on Load
+        const origOnLoad = window.onload;
+        window.onload = function() {
+            if (origOnLoad) origOnLoad();
+            loadSettings();
+        };
+    </script>
